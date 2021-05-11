@@ -7,8 +7,81 @@
 //! and a larger set of direction vectors due to
 //! [Kuo et al.](http://web.maths.unsw.edu.au/~fkuo/sobol/)
 //!
-//! This implementation is limited to `2^16` samples, and will loop back
-//! to the start of the sequence after that limit.
+//! This crate is geared towards use in practical graphics applications, and
+//! as such has some limitations:
+//!
+//! * The maximum sequence length is 2^16.
+//! * The maximum number of supported dimensions is 256.
+//! * It produces 32-bit floats rather than higher-precision 64-bit floats.
+//!
+//!
+//! ## Basic usage
+//!
+//! Basic usage is pretty straightforward.  The first parameter of
+//! `sample_4d()` is the index of the sample you want, and the second
+//! parameter is the index of the set (of four) dimensions you want.
+//! Everything is zero-indexed.
+//!
+//! ```rust
+//! # use sobol_burley::sample_4d;
+//! // The first eight dimensions of sample 1, as two 4-element arrays.
+//! let sample_1_set_1 = sample_4d(0, 0, 0);  // Dimensions 1-4.
+//! let sample_1_set_2 = sample_4d(0, 1, 0);  // Dimensions 5-8.
+//!
+//! // Print the first two dimension.
+//! println!("Sample-1 dimension-1: {}", sample_1_set_1[0]);
+//! println!("Sample-1 dimension-2: {}", sample_1_set_1[1]);
+//!
+//! // The first eight dimensions of sample 2.
+//! let sample_2_set_1 = sample_4d(1, 0, 0);  // Dimensions 1-4.
+//! let sample_2_set_2 = sample_4d(1, 1, 0);  // Dimensions 5-8.
+//! ```
+//!
+//! If all you want is a single standard Owen-scrambled Sobol sequence,
+//! then that's all you need.  You can ignore the third parameter.
+//!
+//!
+//! ## Advanced usage and seeding
+//!
+//! The third parameter of `sample_4d()` is a seed that produces statistically
+//! independent Sobol sequences via the scrambling+shuffling technique in
+//! Brent Burley's paper (linked above).
+//!
+//! One of the application for this is to decorrelate the error between
+//! related integral estimates.  For example, in a 3d renderer you might
+//! pass a different seed to each pixel so that estimate error appears
+//! as noise in the 2d image plane, rather than as objectionable structure.
+//!
+//! Another important applications, for example, is "padding" the dimensions
+//! of a Sobol sequence with another Sobol sequence.  For example, if you
+//! need more than 256 dimensions you can do this:
+//!
+//! ```rust
+//! # use sobol_burley::sample_4d;
+//! // Generate 40000 dimensions.  (Remember the dimensions
+//! // are generated in sets of four.)
+//! for n in 0..10000 {
+//!     let dimension_set_index = n % 64;
+//!     let seed = n / 64;
+//!
+//!     let sample = sample_4d(0, dimension_set_index, seed);
+//! }
+//!```
+//!
+//! In this example, each contiguous set of 256 dimensions has a different
+//! seed, and is therefore only randomly associated with the other sets even
+//! though each set is stratified within itself.
+//!
+//! At first blush, being randomly associated might sound like a bad thing.
+//! Being stratified is better, and is the whole point of using something like
+//! the Sobol sequence.  However, at practical sample counts the
+//! stratification of the Sobol sequence in high dimensions breaks down badly,
+//! and randomness is often better.
+//!
+//! In fact, often using sets of just 2 to 4 stratified dimensions or so, and
+//! mapping them carefully to your problem space, avoids artifacts and is a
+//! win for convergence at practical sample counts.  See Burley's paper for
+//! details.
 
 #![no_std]
 #![allow(clippy::unreadable_literal)]
@@ -20,6 +93,9 @@ use wide::Int4;
 // See the build.rs file for how this included file is generated.
 include!(concat!(env!("OUT_DIR"), "/vectors.inc"));
 
+/// The maximum number of supported dimension sets.
+///
+/// Note that the maximum *index* is one less than this.
 pub const MAX_DIMENSION_SET: u32 = MAX_DIMENSION / 4;
 
 /// Compute four dimensions of a single sample in the Sobol sequence.
@@ -54,7 +130,9 @@ pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
     }
 
     // Do Owen scrambling on the reversed-bits Sobol sample.
-    let sobol_owen_rev = scramble_int4(sobol_rev, dimension_set ^ seed);
+    // The multiply on `dimension_set` is to avoid accidental cancellation
+    // with an incrementing or otherwise structured seed.
+    let sobol_owen_rev = scramble_int4(sobol_rev, dimension_set.wrapping_mul(0x9c8f2d3b) ^ seed);
 
     // Un-reverse the bits and convert to floating point in [0, 1).
     sobol_owen_rev.reverse_bits().to_norm_floats()

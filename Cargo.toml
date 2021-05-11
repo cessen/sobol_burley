@@ -1,13 +1,17 @@
 [package]
 name = "sobol_burley"
 version = "0.1.0"
+description = "Random-access Owen-scrambled Sobol sequences"
+documentation = "https://docs.rs/sobol_burley"
+repository = "https://github.com/cessen/sobol_burley"
+readme = "README.md"
 authors = ["Nathan Vegdahl <cessen@cessen.com>"]
 edition = "2018"
-license = "MIT, Apache 2.0, 3-clause BSD"
+license = "MIT OR Apache-2.0"
 build = "build.rs"
 
 [lib]
-name = "sobol"
+name = "sobol_burley"
 path = "src/lib.rs"
 
 [dev-dependencies]

@@ -1,5 +1,8 @@
 # Sobol-Burley
 
+[![Latest Release][crates-io-badge]][crates-io-url]
+[![Documentation][docs-rs-img]][docs-rs-url]
+
 A seedable Owen-scrambled Sobol sequence based on the paper [Practical Hash-based Owen Scrambling](http://www.jcgt.org/published/0009/04/01/) by Brent Burley, with an improved hash from [Building a Better LK Hash](https://psychopath.io/post/2021_01_30_building_a_better_lk_hash), and a larger set of direction vectors due to [Kuo et al](http://web.maths.unsw.edu.au/~fkuo/sobol/).
 
 This crate is geared towards use in practical graphics applications, and as such has some limitations:
@@ -66,3 +69,9 @@ Contributions are absolutely welcome!  Please keep in mind that this crate aims 
 * As small as it reasonably can be, including transitive dependencies.  PRs that pull in dependencies--especially deep dependency trees--are likely to be rejected unless they really pull their weight.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this project by you will be licensed as above (MIT/Apache dual-license), without any additional terms or conditions.
+
+
+[crates-io-badge]: https://img.shields.io/crates/v/sobol_burley.svg
+[crates-io-url]: https://crates.io/crates/sobol_burley
+[docs-rs-img]: https://docs.rs/sobol_burley/badge.svg
+[docs-rs-url]: https://docs.rs/sobol_burley

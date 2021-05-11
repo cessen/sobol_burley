@@ -1,6 +1,6 @@
 use bencher::{benchmark_group, benchmark_main, black_box, Bencher};
 use rand::{rngs::SmallRng, FromEntropy, Rng};
-use sobol::sample_4d;
+use sobol_burley::sample_4d;
 
 //----
 
