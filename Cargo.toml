@@ -1,7 +1,9 @@
 [package]
 name = "sobol_burley"
 version = "0.1.0"
-description = "Random-access Owen-scrambled Sobol sequences"
+description = "Sobol sequence with Owen scrambling and shuffling"
+categories = ["algorithms", "science", "simulation"]
+keywords = ["sobol", "low-discrepancy", "monte-carlo", "quasirandom", "sampling", "no_std"]
 documentation = "https://docs.rs/sobol_burley"
 repository = "https://github.com/cessen/sobol_burley"
 readme = "README.md"

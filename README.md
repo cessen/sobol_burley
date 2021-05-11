@@ -43,18 +43,12 @@ For more advanced usage, including how to use the third parameter and how to get
 
 ## License
 
-### Main code:
-
-Copyright (c) 2021 Nathan Vegdahl
-
-This project is licensed under either of
+The main code in this project is licensed under either of
 
 * MIT license (licenses/MIT.txt or http://opensource.org/licenses/MIT)
 * Apache License, Version 2.0, (licenses/APACHE-2.0.txt or http://www.apache.org/licenses/LICENSE-2.0)
 
 at your option.
-
-### Direction numbers and build.rs code:
 
 The Sobol direction numbers under `direction_numbers/` and some of the code in `build.rs` (demarcated by comments) is adapted from work by Stephen Joe and Frances Y. Kuo, and is under the 3-clause BSD license.
 
