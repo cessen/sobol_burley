@@ -17,16 +17,20 @@ Expanding this crate to be more general, both in application and target architec
 
 ## Basic usage
 
-Basic usage is very simple.  The first parameter of `sample_4d()` is the index of the sample you want, and the second parameter is the index of the set (of four) dimensions you want.  Everything is zero-indexed.
+Basic usage is pretty straightforward.  The first parameter of `sample_4d()` is the index of the sample you want, and the second parameter is the index of the set (of four) dimensions you want.  Everything is zero-indexed.
 
 ```rust
-// The first eight dimensions of sample 1.
-let sample_1__d0_3 = sample_4d(0, 0, 0);  // Dimensions 1-4.
-let sample_1__d4_7 = sample_4d(0, 1, 0);  // Dimensions 5-8.
+// The first eight dimensions of sample 1, as two 4-element arrays.
+let sample_1_set_1 = sample_4d(0, 0, 0);  // Dimensions 1-4.
+let sample_1_set_2 = sample_4d(0, 1, 0);  // Dimensions 5-8.
+
+// Print the first two dimension.
+println!("Sample-1 dimension-1: {}", sample_1_set_1[0]);
+println!("Sample-1 dimension-2: {}", sample_1_set_1[1]);
 
 // The first eight dimensions of sample 2.
-let sample_2__d0_3 = sample_4d(1, 0, 0);  // Dimensions 1-4.
-let sample_2__d4_7 = sample_4d(1, 1, 0);  // Dimensions 5-8.
+let sample_2_set_1 = sample_4d(1, 0, 0);  // Dimensions 1-4.
+let sample_2_set_2 = sample_4d(1, 1, 0);  // Dimensions 5-8.
 ```
 
 If all you want is a standard Owen-scrambled Sobol sequence, then that's all you need.
