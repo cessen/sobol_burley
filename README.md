@@ -20,23 +20,23 @@ Expanding this crate to be more general, both in application and target architec
 
 ## Basic usage
 
-Basic usage is pretty straightforward.  The first parameter of `sample_4d()` is the index of the sample you want, and the second parameter is the index of the set (of four) dimensions you want.  Everything is zero-indexed.
+Basic usage is pretty straightforward.  The first parameter of `sample_4d()` is the index of the sample you want, and the second parameter is the index of the set (of four) dimensions you want.  The parameters are zero-indexed, and the outputs are in the interval [0, 1).
 
 ```rust
-// The first eight dimensions of sample 1, as two 4-element arrays.
-let sample_1_set_1 = sample_4d(0, 0, 0);  // Dimensions 1-4.
-let sample_1_set_2 = sample_4d(0, 1, 0);  // Dimensions 5-8.
+// Print the first sixteen dimensions of sample 1.
+for d in 0..4 {
+    let [w, x, y, z] = sample_4d(0, d, 0);
+    println!("{} {} {} {}", w, x, y, z);
+}
 
-// Print the first two dimension.
-println!("Sample-1 dimension-1: {}", sample_1_set_1[0]);
-println!("Sample-1 dimension-2: {}", sample_1_set_1[1]);
-
-// The first eight dimensions of sample 2.
-let sample_2_set_1 = sample_4d(1, 0, 0);  // Dimensions 1-4.
-let sample_2_set_2 = sample_4d(1, 1, 0);  // Dimensions 5-8.
+// Print the first sixteen dimensions of sample 2.
+for d in 0..4 {
+    let [w, x, y, z] = sample_4d(1, d, 0);
+    println!("{} {} {} {}", w, x, y, z);
+}
 ```
 
-If all you want is a standard Owen-scrambled Sobol sequence, then that's all you need.
+If all you want is a single standard Owen-scrambled Sobol sequence, then this is all you need.
 
 For more advanced usage, including how to use the third parameter and how to get around the 256-dimension limit, see the crate documentation.
 

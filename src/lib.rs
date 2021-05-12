@@ -20,7 +20,8 @@
 //! Basic usage is pretty straightforward.  The first parameter of
 //! `sample_4d()` is the index of the sample you want, and the second
 //! parameter is the index of the set (of four) dimensions you want.
-//! Everything is zero-indexed.
+//! The parameters are zero-indexed, and the outputs are in the
+//! interval [0, 1).
 //!
 //! ```rust
 //! # use sobol_burley::sample_4d;
