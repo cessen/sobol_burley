@@ -17,7 +17,7 @@ name = "sobol_burley"
 path = "src/lib.rs"
 
 [dev-dependencies]
-rand = "0.6"
+rand = "0.8"
 bencher = "0.1.5"
 
 [[bench]]

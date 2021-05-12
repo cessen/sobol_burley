@@ -1,5 +1,5 @@
 use bencher::{benchmark_group, benchmark_main, black_box, Bencher};
-use rand::{rngs::SmallRng, FromEntropy, Rng};
+use rand::prelude::*;
 use sobol_burley::sample_4d;
 
 //----
@@ -13,7 +13,7 @@ fn gen_1000_samples(bench: &mut Bencher) {
 }
 
 fn gen_1000_samples_incoherent(bench: &mut Bencher) {
-    let mut rng = SmallRng::from_entropy();
+    let mut rng = rand::thread_rng();
     bench.iter(|| {
         let s = rng.gen::<u32>();
         let d = rng.gen::<u32>();
