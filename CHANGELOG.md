@@ -3,6 +3,11 @@
 
 ## [Unreleased]
 
+- Very tiny performance improvement due to better u32-to-f32 conversion and
+  leaner SSE bit reversal code.
+- Renamed MAX_DIMENSION_SET to NUM_DIMENSION_SETS to better reflect its meaning.
+- Some improvements to documentation.
+
 
 ## [0.1.0] - 2021-05-11
 

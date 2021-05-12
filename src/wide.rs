@@ -4,9 +4,9 @@
 // #[cfg(all(target_arch = "x86_64", target_feature = "sse4.1"))]
 pub(crate) mod sse {
     use core::arch::x86_64::{
-        __m128i, _mm_add_epi32, _mm_and_si128, _mm_cvtepi32_ps, _mm_mul_ps, _mm_or_si128,
-        _mm_set1_epi32, _mm_set1_ps, _mm_set_epi32, _mm_setzero_si128, _mm_sll_epi32,
-        _mm_slli_epi32, _mm_srl_epi32, _mm_srli_epi32, _mm_xor_si128,
+        __m128i, _mm_add_epi32, _mm_and_si128, _mm_or_si128, _mm_set1_epi32, _mm_set1_ps,
+        _mm_set_epi32, _mm_setzero_si128, _mm_sll_epi32, _mm_slli_epi32, _mm_srl_epi32,
+        _mm_srli_epi32, _mm_sub_ps, _mm_xor_si128,
     };
 
     #[derive(Debug, Copy, Clone)]
@@ -32,12 +32,10 @@ pub(crate) mod sse {
         /// Converts the full range of a 32 bit integer to a float in [0, 1).
         #[inline(always)]
         pub fn to_norm_floats(self) -> [f32; 4] {
-            const ONE_OVER_31BITS: f32 = 1.0 / (1u64 << 31) as f32;
             let n4 = unsafe {
-                _mm_mul_ps(
-                    _mm_cvtepi32_ps(_mm_srli_epi32(self.v, 1)),
-                    _mm_set1_ps(ONE_OVER_31BITS),
-                )
+                let a = _mm_srli_epi32(self.v, 9);
+                let b = _mm_or_si128(a, _mm_set1_epi32(core::mem::transmute(0x3f800000u32)));
+                _mm_sub_ps(core::mem::transmute(b), _mm_set1_ps(1.0))
             };
 
             unsafe { core::mem::transmute(n4) }
@@ -47,53 +45,34 @@ pub(crate) mod sse {
         pub fn reverse_bits(self) -> Int4 {
             let mut n = self.v;
             unsafe {
-                let a = _mm_slli_epi32(n, 16);
-                let b = _mm_srli_epi32(n, 16);
-                n = _mm_or_si128(a, b);
+                // From http://aggregate.org/MAGIC/#Bit%20Reversal but SIMD
+                // on four numbers at once.
 
-                //----
-                let a = _mm_and_si128(
-                    _mm_slli_epi32(n, 8),
-                    _mm_set1_epi32(core::mem::transmute(0xff00ff00u32)),
+                let y0 = _mm_set1_epi32(core::mem::transmute(0x55555555u32));
+                n = _mm_or_si128(
+                    _mm_and_si128(_mm_srli_epi32(n, 1), y0),
+                    _mm_slli_epi32(_mm_and_si128(n, y0), 1),
                 );
-                let b = _mm_and_si128(
-                    _mm_srli_epi32(n, 8),
-                    _mm_set1_epi32(core::mem::transmute(0x00ff00ffu32)),
-                );
-                n = _mm_or_si128(a, b);
 
-                //----
-                let a = _mm_and_si128(
-                    _mm_slli_epi32(n, 4),
-                    _mm_set1_epi32(core::mem::transmute(0xf0f0f0f0u32)),
+                let y1 = _mm_set1_epi32(core::mem::transmute(0x33333333u32));
+                n = _mm_or_si128(
+                    _mm_and_si128(_mm_srli_epi32(n, 2), y1),
+                    _mm_slli_epi32(_mm_and_si128(n, y1), 2),
                 );
-                let b = _mm_and_si128(
-                    _mm_srli_epi32(n, 4),
-                    _mm_set1_epi32(core::mem::transmute(0x0f0f0f0fu32)),
-                );
-                n = _mm_or_si128(a, b);
 
-                //----
-                let a = _mm_and_si128(
-                    _mm_slli_epi32(n, 2),
-                    _mm_set1_epi32(core::mem::transmute(0xccccccccu32)),
+                let y2 = _mm_set1_epi32(core::mem::transmute(0x0f0f0f0fu32));
+                n = _mm_or_si128(
+                    _mm_and_si128(_mm_srli_epi32(n, 4), y2),
+                    _mm_slli_epi32(_mm_and_si128(n, y2), 4),
                 );
-                let b = _mm_and_si128(
-                    _mm_srli_epi32(n, 2),
-                    _mm_set1_epi32(core::mem::transmute(0x33333333u32)),
-                );
-                n = _mm_or_si128(a, b);
 
-                //----
-                let a = _mm_and_si128(
-                    _mm_slli_epi32(n, 1),
-                    _mm_set1_epi32(core::mem::transmute(0xaaaaaaaau32)),
+                let y3 = _mm_set1_epi32(core::mem::transmute(0x00ff00ffu32));
+                n = _mm_or_si128(
+                    _mm_and_si128(_mm_srli_epi32(n, 8), y3),
+                    _mm_slli_epi32(_mm_and_si128(n, y3), 8),
                 );
-                let b = _mm_and_si128(
-                    _mm_srli_epi32(n, 1),
-                    _mm_set1_epi32(core::mem::transmute(0x55555555u32)),
-                );
-                n = _mm_or_si128(a, b);
+
+                n = _mm_or_si128(_mm_srli_epi32(n, 16), _mm_slli_epi32(n, 16));
 
                 Int4 { v: n }
             }
@@ -265,6 +244,37 @@ pub(crate) mod sse {
             assert_eq!(a.get(2), 0xffff0000);
             assert_eq!(a.get(3), 0xffff0000);
         }
+
+        #[test]
+        fn to_norm_floats() {
+            let a = Int4::from([0x00000000; 4]);
+            let b = Int4::from([0x80000000; 4]);
+            let c = Int4::from([0xffffffff; 4]);
+
+            let a2 = a.to_norm_floats();
+            let b2 = b.to_norm_floats();
+            let c2 = c.to_norm_floats();
+
+            assert_eq!(a2, [0.0, 0.0, 0.0, 0.0]);
+            assert_eq!(b2, [0.5, 0.5, 0.5, 0.5]);
+            assert!(c2[0] > 0.99999 && c2[0] < 1.0);
+            assert!(c2[1] > 0.99999 && c2[1] < 1.0);
+            assert!(c2[2] > 0.99999 && c2[2] < 1.0);
+            assert!(c2[3] > 0.99999 && c2[3] < 1.0);
+        }
+
+        #[test]
+        fn reverse_bits() {
+            let a = 0xcde7a64e_u32;
+            let b = 0xdc69fbd9_u32;
+            let c = 0x3238fec6_u32;
+            let d = 0x1fb9ba8f_u32;
+
+            assert_eq!(Int4::from([a; 4]).reverse_bits().get(0), a.reverse_bits());
+            assert_eq!(Int4::from([b; 4]).reverse_bits().get(0), b.reverse_bits());
+            assert_eq!(Int4::from([c; 4]).reverse_bits().get(0), c.reverse_bits());
+            assert_eq!(Int4::from([d; 4]).reverse_bits().get(0), d.reverse_bits());
+        }
     }
 }
 #[cfg(target_arch = "x86_64")]
@@ -290,10 +300,10 @@ pub(crate) mod fallback {
         pub fn to_norm_floats(self) -> [f32; 4] {
             const ONE_OVER_32BITS: f32 = 1.0 / (1u64 << 32) as f32;
             [
-                self.v[0] as f32 * ONE_OVER_32BITS,
-                self.v[1] as f32 * ONE_OVER_32BITS,
-                self.v[2] as f32 * ONE_OVER_32BITS,
-                self.v[3] as f32 * ONE_OVER_32BITS,
+                f32::from_bits((self.v[0] >> 9) | 0x3f800000) - 1.0,
+                f32::from_bits((self.v[1] >> 9) | 0x3f800000) - 1.0,
+                f32::from_bits((self.v[2] >> 9) | 0x3f800000) - 1.0,
+                f32::from_bits((self.v[3] >> 9) | 0x3f800000) - 1.0,
             ]
         }
 

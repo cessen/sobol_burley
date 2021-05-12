@@ -18,7 +18,7 @@ fn main() {
     let vectors = generate_direction_vectors(NUM_DIMENSIONS);
 
     // Write dimensions limit.
-    f.write_all(format!("const MAX_DIMENSION: u32 = {};\n", NUM_DIMENSIONS).as_bytes())
+    f.write_all(format!("const NUM_DIMENSIONS: u32 = {};\n", NUM_DIMENSIONS).as_bytes())
         .unwrap();
 
     // Write the vectors.

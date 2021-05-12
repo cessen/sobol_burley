@@ -24,21 +24,21 @@
 //!
 //! ```rust
 //! # use sobol_burley::sample_4d;
-//! // The first eight dimensions of sample 1, as two 4-element arrays.
-//! let sample_1_set_1 = sample_4d(0, 0, 0);  // Dimensions 1-4.
-//! let sample_1_set_2 = sample_4d(0, 1, 0);  // Dimensions 5-8.
+//! // Print the first sixteen dimensions of sample 1.
+//! for d in 0..4 {
+//!     let [w, x, y, z] = sample_4d(0, d, 0);
+//!     println!("{} {} {} {}", w, x, y, z);
+//! }
 //!
-//! // Print the first two dimension.
-//! println!("Sample-1 dimension-1: {}", sample_1_set_1[0]);
-//! println!("Sample-1 dimension-2: {}", sample_1_set_1[1]);
-//!
-//! // The first eight dimensions of sample 2.
-//! let sample_2_set_1 = sample_4d(1, 0, 0);  // Dimensions 1-4.
-//! let sample_2_set_2 = sample_4d(1, 1, 0);  // Dimensions 5-8.
+//! // Print the first sixteen dimensions of sample 2.
+//! for d in 0..4 {
+//!     let [w, x, y, z] = sample_4d(1, d, 0);
+//!     println!("{} {} {} {}", w, x, y, z);
+//! }
 //! ```
 //!
 //! If all you want is a single standard Owen-scrambled Sobol sequence,
-//! then that's all you need.  You can ignore the third parameter.
+//! then this is all you need.  You can ignore the third parameter.
 //!
 //!
 //! ## Advanced usage and seeding
@@ -47,22 +47,23 @@
 //! independent Sobol sequences via the scrambling+shuffling technique in
 //! Brent Burley's paper (linked above).
 //!
-//! One of the application for this is to decorrelate the error between
+//! One of the applications for this is to decorrelate the error between
 //! related integral estimates.  For example, in a 3d renderer you might
-//! pass a different seed to each pixel so that estimate error appears
-//! as noise in the 2d image plane, rather than as objectionable structure.
+//! pass a different seed to each pixel so that error in the pixel colors
+//! shows up as noise instead of as structured artifacts.
 //!
-//! Another important applications, for example, is "padding" the dimensions
+//! Another important application is "padding" the dimensions
 //! of a Sobol sequence with another Sobol sequence.  For example, if you
 //! need more than 256 dimensions you can do this:
 //!
 //! ```rust
-//! # use sobol_burley::sample_4d;
+//! use sobol_burley::{sample_4d, NUM_DIMENSION_SETS};
+//!
 //! // Generate 40000 dimensions.  (Remember the dimensions
 //! // are generated in sets of four.)
 //! for n in 0..10000 {
-//!     let dimension_set_index = n % 64;
-//!     let seed = n / 64;
+//!     let dimension_set_index = n % NUM_DIMENSION_SETS;
+//!     let seed = n / NUM_DIMENSION_SETS;
 //!
 //!     let sample = sample_4d(0, dimension_set_index, seed);
 //! }
@@ -89,16 +90,16 @@
 mod wide;
 use wide::Int4;
 
-// This `include` provides `MAX_DIMENSION` and `REV_VECTORS`.
+// This `include` provides `NUM_DIMENSIONS` and `REV_VECTORS`.
 // See the build.rs file for how this included file is generated.
 include!(concat!(env!("OUT_DIR"), "/vectors.inc"));
 
-/// The maximum number of supported dimension sets.
-///
-/// Note that the maximum *index* is one less than this.
-pub const MAX_DIMENSION_SET: u32 = MAX_DIMENSION / 4;
+/// The number of available dimension sets.
+pub const NUM_DIMENSION_SETS: u32 = NUM_DIMENSIONS / 4;
 
 /// Compute four dimensions of a single sample in the Sobol sequence.
+///
+/// All numbers returned are in the interval [0, 1).
 ///
 /// `sample_index` specifies which sample in the Sobol sequence to compute.
 ///
@@ -108,9 +109,13 @@ pub const MAX_DIMENSION_SET: u32 = MAX_DIMENSION / 4;
 /// `seed` produces statistically independent Sobol sequences.  Passing two
 /// different seeds will produce two different sequences that are only randomly
 /// associated, with no stratification or correlation between them.
+///
+/// # Panics
+///
+/// Panics if `dimension_set` is greater than or equal to `NUM_DIMENSION_SETS`.
 #[inline]
 pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
-    assert!(dimension_set < MAX_DIMENSION_SET);
+    assert!(dimension_set < NUM_DIMENSION_SETS);
     let vecs = &REV_VECTORS[dimension_set as usize];
 
     // Shuffle the index using the given seed to produce a unique statistically
@@ -123,6 +128,9 @@ pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
     let mut i = 0;
     while index != 0 {
         let j = index.leading_zeros();
+        // Note: using `get_unchecked()` here instead gives about a 3%
+        // performance boost.  I'm opting to leave that on the table for now,
+        // for the sake of keeping the main code entirely safe.
         sobol_rev ^= vecs[(i + j) as usize].into();
         i += j + 1;
         index <<= j;
