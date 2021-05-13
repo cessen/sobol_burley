@@ -18,8 +18,14 @@ fn main() {
     let vectors = generate_direction_vectors(NUM_DIMENSIONS);
 
     // Write dimensions limit.
-    f.write_all(format!("const NUM_DIMENSIONS: u32 = {};\n", NUM_DIMENSIONS).as_bytes())
-        .unwrap();
+    f.write_all(
+        format!(
+            "/// The number of available dimensions.\npub const NUM_DIMENSIONS: u32 = {};\n",
+            NUM_DIMENSIONS
+        )
+        .as_bytes(),
+    )
+    .unwrap();
 
     // Write the vectors.
     // We write them in a rather atypical way because of how the library

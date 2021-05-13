@@ -13,32 +13,30 @@ This crate is geared towards use in practical graphics applications, and as such
 
 These are all trade-offs made for better performance and smaller code size.
 
-This crate also currently targets SIMD execution on the x86-64 architecture, which is why it always calculates 4 dimensions at a time.  It will still compile and run just fine on any architecture, but will be notably slower due to not utilizing SIMD.
-
-Expanding this crate to be more general, both in application and target architectures, is a goal for the future.  However, efficient execution for graphics applications will always be the top priority.
+Expanding this crate to be suitable for more general applications is a goal for the future.  However, efficient execution for graphics applications will always be the top priority.
 
 
 ## Basic usage
 
-Basic usage is pretty straightforward.  The first parameter of `sample_4d()` is the index of the sample you want, and the second parameter is the index of the set (of four) dimensions you want.  The parameters are zero-indexed, and the outputs are in the interval [0, 1).
+Basic usage is pretty straightforward.  The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and the output is in the interval [0, 1).
 
 ```rust
 // Print the first sixteen dimensions of sample 1.
-for d in 0..4 {
-    let [w, x, y, z] = sample_4d(0, d, 0);
-    println!("{} {} {} {}", w, x, y, z);
+for d in 0..16 {
+    let n = sample(0, d, 0);
+    println!("{}", n);
 }
 
 // Print the first sixteen dimensions of sample 2.
-for d in 0..4 {
-    let [w, x, y, z] = sample_4d(1, d, 0);
-    println!("{} {} {} {}", w, x, y, z);
+for d in 0..16 {
+    let n = sample(1, d, 0);
+    println!("{}", n);
 }
 ```
 
 If all you want is a single standard Owen-scrambled Sobol sequence, then this is all you need.
 
-For more advanced usage, including how to use the third parameter and how to get around the 256-dimension limit, see the crate documentation.
+For more advanced usage--including how to use the third parameter, how to get around the 256-dimension limit, and how to calculate multiple dimensions at once with SIMD--see the crate documentation.
 
 
 ## License
