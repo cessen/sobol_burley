@@ -3,6 +3,9 @@
 
 ## [Unreleased]
 
+
+## [0.3.0] - 2021-05-14
+
 - Add support for computing just one dimension at a time.  This makes usage
   easier when performance isn't critical, and makes the documention a bit
   easier to follow.
@@ -24,6 +27,7 @@
 - First release.
 
 
-[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/cessen/sobol_burley/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cessen/sobol_burley/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cessen/sobol_burley/releases/tag/v0.1.0
