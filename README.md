@@ -9,11 +9,11 @@ This crate is geared towards practical graphics applications, and as such has so
 
 * The maximum sequence length is 2^16.
 * The maximum number of dimensions is 256 (although this can be worked around with seeding).
-* The output is 32-bit floats, not 64-bit.
+* Only `f32` output is supported.
 
 These are all trade-offs for the sake of better performance and a smaller memory footprint.
 
-Expanding this crate to be suitable for more general applications is a goal for the future.  However, efficient execution for graphics applications will always be the top priority.
+Expanding this crate to be more suitable for a wider range of applications is a tentative goal for the future.  However, efficient execution for graphics applications will always be the top priority.
 
 
 ## Basic usage
@@ -23,13 +23,13 @@ Basic usage is pretty straightforward:
 ```rust
 use sobol_burley::sample;
 
-// Print the first sixteen dimensions of sample 1.
+// Print the first 16 dimensions of the first sample.
 for d in 0..16 {
     let n = sample(0, d, 0);
     println!("{}", n);
 }
 
-// Print the first sixteen dimensions of sample 2.
+// Print the first 16 dimensions of the second sample.
 for d in 0..16 {
     let n = sample(1, d, 0);
     println!("{}", n);
@@ -50,9 +50,7 @@ The main code in this project is licensed under either of
 
 at your option.
 
-The Sobol direction numbers under `direction_numbers/` and some of the code in `build.rs` (demarcated by comments) is adapted from work by Stephen Joe and Frances Y. Kuo, and is under the 3-clause BSD license.
-
-See `licenses/JOE_KUO.txt` for details.
+The Sobol direction numbers under `direction_numbers/` and some of the code in `build.rs` (demarcated by comments) is adapted from work by Stephen Joe and Frances Y. Kuo, and is under the 3-clause BSD license.  See `licenses/JOE_KUO.txt` for details.
 
 
 ## Contributing

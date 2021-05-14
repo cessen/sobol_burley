@@ -13,10 +13,10 @@
 //! * The maximum sequence length is 2^16.
 //! * The maximum number of dimensions is 256 (although this can be worked
 //!   around with seeding).
-//! * The output is 32-bit floats, not 64-bit.
+//! * Only `f32` output is supported.
 //!
-//! These are all trade-offs for the sake of better performance and a smaller memory
-//! footprint.
+//! These are all trade-offs for the sake of better performance and a smaller
+//! memory footprint.
 //!
 //!
 //! ## Basic usage
@@ -26,13 +26,13 @@
 //! ```rust
 //! use sobol_burley::sample;
 //!
-//! // Print the first sixteen dimensions of sample 1.
+//! // Print the first 16 dimensions of the first sample.
 //! for dimension in 0..16 {
 //!     let n = sample(0, dimension, 0);
 //!     println!("{}", n);
 //! }
 //!
-//! // Print the first sixteen dimensions of sample 2.
+//! // Print the first 16 dimensions of the second sample.
 //! for dimension in 0..16 {
 //!     let n = sample(1, dimension, 0);
 //!     println!("{}", n);
@@ -50,12 +50,12 @@
 //! ## Seeding
 //!
 //! *(Note: the `sample()` function automatically uses a different Owen
-//! scramble for each dimension, so manual seeding is unnecessary if you
-//! just want a standard single sequence.)*
+//! scramble for each dimension, so seeding is unnecessary if you just want
+//! a single Sobol sequence.)*
 //!
 //! The third parameter of `sample()` is a seed that produces statistically
 //! independent Sobol sequences via the scrambling+shuffling technique from
-//! Brent Burley's paper (linked above).
+//! Brent Burley's paper.
 //!
 //! One of the applications for this is to decorrelate the error between
 //! related integral estimates.  For example, in a 3d renderer you might
@@ -63,34 +63,26 @@
 //! shows up as noise instead of as structured artifacts.
 //!
 //! Another important application is "padding" the dimensions of a Sobol
-//! sequence.  For example, if you need more than 256 dimensions you can
-//! do this:
+//! sequence.  By changing the seed we can re-use the same dimensions over
+//! and over to create an arbitrarily high-dimensional sequence.  For example:
 //!
 //! ```rust
-//! use sobol_burley::{
-//!     sample,
-//!     NUM_DIMENSIONS, // = 256
-//! };
-//!
+//! # use sobol_burley::sample;
 //! // Print 10000 dimensions of a single sample.
 //! for dimension in 0..10000 {
-//!     let dimension_index = dimension % NUM_DIMENSIONS;
-//!     let seed = dimension / NUM_DIMENSIONS;
-//!
-//!     let n = sample(0, dimension_index, seed);
+//!     let seed = dimension / 4;
+//!     let n = sample(0, dimension % 4, seed);
 //!     println!("{}", n);
 //! }
 //!```
 //!
-//! In this example we change seeds every 256 dimensions.  This allows us to
-//! re-use the same 256 dimensions over and over, extending the sequence to as
-//! many dimensions as we like.  With this approach we could also use just the
-//! first 3, 4, 5, etc. dimensions repeatedly--there isn't anything special
-//! about 256.  In fact, using only a handful of dimensions this way can be
-//! beneficial to quality if applied carefully.
+//! In this example we change seeds every 4 dimensions.  This allows us to
+//! re-use the same 4 dimensions over and over, extending the sequence to as
+//! many dimensions as we like.  Each set of 4 dimensions is stratified within
+//! itself, but is randomly decorrelated from the other sets.
 //!
-//! See Burley's paper for proper justification of this padding approach as
-//! well as recommendations about its use.
+//! See Burley's paper for justification of this padding approach as well as
+//! recommendations about its use.
 //!
 //!
 //! # SIMD
@@ -107,17 +99,15 @@
 //! ```rust
 //! # use sobol_burley::{sample, sample_4d};
 //! for dimension_set in 0..10 {
-//!     for i in 0..256 {
-//!         let a = [
-//!             sample(i, dimension_set * 4, 0),
-//!             sample(i, dimension_set * 4 + 1, 0),
-//!             sample(i, dimension_set * 4 + 2, 0),
-//!             sample(i, dimension_set * 4 + 3, 0)
-//!         ];
-//!         let b = sample_4d(i, dimension_set, 0);
+//!     let a = [
+//!         sample(0, dimension_set * 4, 0),
+//!         sample(0, dimension_set * 4 + 1, 0),
+//!         sample(0, dimension_set * 4 + 2, 0),
+//!         sample(0, dimension_set * 4 + 3, 0)
+//!     ];
+//!     let b = sample_4d(0, dimension_set, 0);
 //!
-//!         assert_eq!(a, b);
-//!     }
+//!     assert_eq!(a, b);
 //! }
 //! ```
 //!
@@ -155,7 +145,7 @@ pub const NUM_DIMENSION_SETS_4D: u32 = NUM_DIMENSIONS / 4;
 ///
 /// * Panics if `dimension` is greater than or equal to [`NUM_DIMENSIONS`].
 /// * In debug, panics if `sample_index` is greater than or equal to 2^16.
-///   In release, it returns unspecified floats in the interval [0, 1).
+///   In release, returns unspecified floats in the interval [0, 1).
 #[inline]
 pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
     debug_assert!(sample_index < (1 << 16));
@@ -216,7 +206,7 @@ pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
 /// * Panics if `dimension_set` is greater than or equal to
 ///   [`NUM_DIMENSION_SETS_4D`].
 /// * In debug, panics if `sample_index` is greater than or equal to 2^16.
-///   In release, it returns unspecified floats in the interval [0, 1).
+///   In release, returns unspecified floats in the interval [0, 1).
 #[inline]
 pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
     debug_assert!(sample_index < (1 << 16));
