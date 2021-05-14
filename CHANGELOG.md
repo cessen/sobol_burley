@@ -8,6 +8,8 @@
   easier to follow.
 - Documentation improvements.
 - Panic in debug when the max sample count is exceeded.
+- Reduce memory footprint, by storing only the half of the direction vector data that we actually use.
+
 
 ## [0.2.0] - 2021-05-11
 

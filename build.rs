@@ -20,7 +20,7 @@ fn main() {
     // Write dimensions limit.
     f.write_all(
         format!(
-            "/// The number of available dimensions.\npub const NUM_DIMENSIONS: u32 = {};\n",
+            "/// The number of available dimensions.\npub const NUM_DIMENSIONS: u32 = {};\n\n",
             NUM_DIMENSIONS
         )
         .as_bytes(),
@@ -32,8 +32,14 @@ fn main() {
     // uses them.  First, we interleave the numbers of each set of four
     // dimensions, for SIMD evaluation.  Second, each number is written
     // with reversed bits, to avoid needing to reverse them before scrambling.
-    f.write_all(format!("const REV_VECTORS: &[[[u{0}; 4]; {0}]] = &[\n", SOBOL_BITS).as_bytes())
-        .unwrap();
+    f.write_all(
+        format!(
+            "const REV_VECTORS: &[[[u{0}; 4]; {1}]] = &[\n",
+            SOBOL_BITS, SOBOL_DEPTH
+        )
+        .as_bytes(),
+    )
+    .unwrap();
     for d4 in vectors.chunks_exact(4) {
         f.write_all("  [\n".as_bytes()).unwrap();
         for ((a, b), (c, d)) in d4[0]
@@ -74,17 +80,18 @@ fn main() {
 //       two-dimensional projections, SIAM J. Sci. Comput. 30, 2635-2654 (2008)
 //
 // It is under the 3-clause BSD license, copyright Stephen Joe and Frances
-// Y. Kuo.  See licenses/JOE_KUO.txt for details.
+// Y. Kuo.  See `licenses/JOE_KUO.txt` for details.
 
 type SobolInt = u32;
-const SOBOL_BITS: usize = std::mem::size_of::<SobolInt>() * 8;
+const SOBOL_BITS: usize = std::mem::size_of::<SobolInt>() * 8; // Bits per vector element.
+const SOBOL_DEPTH: usize = 16; // Number of vector elements.
 
-pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_BITS]> {
+pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_DEPTH]> {
     let mut vectors = Vec::new();
 
     // Calculate first dimension, which is just the van der Corput sequence.
-    let mut dim_0 = [0 as SobolInt; SOBOL_BITS];
-    for i in 0..SOBOL_BITS {
+    let mut dim_0 = [0 as SobolInt; SOBOL_DEPTH];
+    for i in 0..SOBOL_DEPTH {
         dim_0[i] = 1 << (SOBOL_BITS - 1 - i);
     }
     vectors.push(dim_0);
@@ -92,7 +99,7 @@ pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_BIT
     // Do the rest of the dimensions.
     let mut lines = DIRECTION_NUMBERS_TEXT.lines();
     for _ in 1..dimensions {
-        let mut v = [0 as SobolInt; SOBOL_BITS];
+        let mut v = [0 as SobolInt; SOBOL_DEPTH];
 
         // Get data from the next valid line from the direction numbers text
         // file.
@@ -107,21 +114,14 @@ pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_BIT
         };
 
         // Generate the direction numbers for this dimension.
-        if SOBOL_BITS <= s as usize {
-            for i in 0..SOBOL_BITS {
-                v[i] = (m[i] << (SOBOL_BITS - 1 - i)) as SobolInt;
-            }
-        } else {
-            for i in 0..(s as usize) {
-                v[i] = (m[i] << (SOBOL_BITS - 1 - i)) as SobolInt;
-            }
+        for i in 0..s.min(SOBOL_DEPTH) {
+            v[i] = (m[i] << (SOBOL_BITS - 1 - i)) as SobolInt;
+        }
+        for i in s.min(SOBOL_DEPTH)..SOBOL_DEPTH {
+            v[i] = v[i - s as usize] ^ (v[i - s as usize] >> s);
 
-            for i in (s as usize)..SOBOL_BITS {
-                v[i] = v[i - s as usize] ^ (v[i - s as usize] >> s);
-
-                for k in 1..s {
-                    v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k as usize];
-                }
+            for k in 1..s {
+                v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k as usize];
             }
         }
 
