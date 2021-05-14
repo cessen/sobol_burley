@@ -1,29 +1,31 @@
 //! A seedable Owen-scrambled Sobol sequence.
 //!
-//! This is based on the paper [Practical Hash-based Owen
+//! This crate is based on the paper [Practical Hash-based Owen
 //! Scrambling](http://www.jcgt.org/published/0009/04/01/) by Brent Burley,
-//! with an improved hash from [Building a Better LK
-//! Hash](https://psychopath.io/post/2021_01_30_building_a_better_lk_hash),
-//! and a larger set of direction vectors due to
+//! but with an improved hash from [Building a Better LK
+//! Hash](https://psychopath.io/post/2021_01_30_building_a_better_lk_hash)
+//! and more dimensions due to
 //! [Kuo et al.](http://web.maths.unsw.edu.au/~fkuo/sobol/)
 //!
-//! This crate is geared towards use in practical graphics applications, and
+//! This crate is geared towards practical graphics applications, and
 //! as such has some limitations:
 //!
 //! * The maximum sequence length is 2^16.
-//! * The maximum number of supported dimensions is 256.
-//! * It produces 32-bit floats rather than higher-precision 64-bit floats.
+//! * The maximum number of dimensions is 256 (although this can be worked
+//!   around with seeding).
+//! * The output is 32-bit floats, not 64-bit.
+//!
+//! These are all trade-offs for the sake of better performance and a smaller memory
+//! footprint.
 //!
 //!
 //! ## Basic usage
 //!
-//! Basic usage is pretty straightforward.  The first parameter of
-//! `sample()` is the index of the sample you want, and the second
-//! parameter is the index of the dimension you want.  The parameters
-//! are zero-indexed, and the output is in the interval [0, 1).
+//! Basic usage is pretty straightforward:
 //!
 //! ```rust
-//! # use sobol_burley::sample;
+//! use sobol_burley::sample;
+//!
 //! // Print the first sixteen dimensions of sample 1.
 //! for dimension in 0..16 {
 //!     let n = sample(0, dimension, 0);
@@ -37,33 +39,41 @@
 //! }
 //! ```
 //!
+//! The first parameter of `sample()` is the index of the sample you want,
+//! and the second parameter is the index of the dimension you want.  The
+//! parameters are zero-indexed, and the output is in the interval [0, 1).
+//!
 //! If all you want is a single standard Owen-scrambled Sobol sequence,
 //! then this is all you need.  You can ignore the third parameter.
 //!
 //!
 //! ## Seeding
 //!
+//! *(Note: the `sample()` function automatically uses a different Owen
+//! scramble for each dimension, so manual seeding is unnecessary if you
+//! just want a standard single sequence.)*
+//!
 //! The third parameter of `sample()` is a seed that produces statistically
-//! independent Sobol sequences via the shuffling technique in Brent Burley's
-//! paper linked above.  (Note: different dimensions are already automatically
-//! scrambled with different randomizations&mdash;you don't need the seed
-//! parameter for that.)
+//! independent Sobol sequences via the scrambling+shuffling technique from
+//! Brent Burley's paper (linked above).
 //!
 //! One of the applications for this is to decorrelate the error between
 //! related integral estimates.  For example, in a 3d renderer you might
 //! pass a different seed to each pixel so that error in the pixel colors
 //! shows up as noise instead of as structured artifacts.
 //!
-//! Another important application is "padding" the dimensions
-//! of a Sobol sequence with another Sobol sequence.  For example, if you
-//! need more than 256 dimensions you can do this:
+//! Another important application is "padding" the dimensions of a Sobol
+//! sequence.  For example, if you need more than 256 dimensions you can
+//! do this:
 //!
 //! ```rust
-//! # use sobol_burley::sample;
+//! use sobol_burley::{
+//!     sample,
+//!     NUM_DIMENSIONS, // = 256
+//! };
+//!
 //! // Print 10000 dimensions of a single sample.
 //! for dimension in 0..10000 {
-//!     use sobol_burley::NUM_DIMENSIONS; // = 256
-//!
 //!     let dimension_index = dimension % NUM_DIMENSIONS;
 //!     let seed = dimension / NUM_DIMENSIONS;
 //!
@@ -72,29 +82,25 @@
 //! }
 //!```
 //!
-//! In this example, each contiguous set of 256 dimensions has a different
-//! seed, and is therefore only randomly associated with the other sets even
-//! though each set is stratified within itself.
+//! In this example we change seeds every 256 dimensions.  This allows us to
+//! re-use the same 256 dimensions over and over, extending the sequence to as
+//! many dimensions as we like.  With this approach we could also use just the
+//! first 3, 4, 5, etc. dimensions repeatedly--there isn't anything special
+//! about 256.  In fact, using only a handful of dimensions this way can be
+//! beneficial to quality if applied carefully.
 //!
-//! At first blush, being randomly associated might sound like a bad thing.
-//! Being stratified is better, and is the whole point of using something like
-//! the Sobol sequence.  However, at practical sample counts the
-//! stratification of the Sobol sequence in high dimensions breaks down badly,
-//! and randomness is often better.
-//!
-//! In fact, often using sets of just 2 to 4 stratified dimensions or so, and
-//! mapping them carefully to your problem space, can avoid artifacts and be a
-//! win for convergence at practical sample counts.  See Burley's paper for
-//! details.
+//! See Burley's paper for proper justification of this padding approach as
+//! well as recommendations about its use.
 //!
 //!
 //! # SIMD
 //!
-//! You can use `sample_4d()` to compute four dimensions of a sample at a time.
-//! On the x86-64 architecture it will utilize SIMD for more efficient
-//! computation, and is about 4x as fast.  On other architectures it will still
-//! compute correct results, but SIMD won't be utilized.  (Expanding SIMD
-//! support to more architectures is a future goal.)
+//! You can use `sample_4d()` to compute four dimensions at once, returned as
+//! an array of floats.
+//!
+//! On x86-64 architectures `sample_4d()` utilizes SIMD for a roughly 4x
+//! speed-up.  On other architectures it still computes correct results, but
+//! SIMD isn't supported yet.
 //!
 //! Importantly, `sample()` and `sample_4d()` always compute identical results:
 //!
@@ -115,7 +121,7 @@
 //! }
 //! ```
 //!
-//! The difference is only in performance and how the dimensions are specified.
+//! The difference is only in performance and how the dimensions are indexed.
 
 #![no_std]
 #![allow(clippy::unreadable_literal)]
@@ -128,13 +134,14 @@ use wide::Int4;
 include!(concat!(env!("OUT_DIR"), "/vectors.inc"));
 
 /// The number of available 4d dimension sets.
+///
+/// This is just `NUM_DIMENSIONS / 4`, for convenience.
 pub const NUM_DIMENSION_SETS_4D: u32 = NUM_DIMENSIONS / 4;
 
 /// Compute one dimension of a single sample in the Sobol sequence.
 ///
-/// All numbers returned are in the interval [0, 1).
-///
 /// `sample_index` specifies which sample in the Sobol sequence to compute.
+/// A maxmimum of 2^16 samples is supported.
 ///
 /// `dimension` specifies which dimension to compute.
 ///
@@ -142,11 +149,16 @@ pub const NUM_DIMENSION_SETS_4D: u32 = NUM_DIMENSIONS / 4;
 /// different seeds will produce two different sequences that are only randomly
 /// associated, with no stratification or correlation between them.
 ///
+/// Returns a number in the interval [0, 1).
+///
 /// # Panics
 ///
-/// Panics if `dimension` is greater than or equal to `NUM_DIMENSIONS`.
+/// * Panics if `dimension` is greater than or equal to [`NUM_DIMENSIONS`].
+/// * In debug, panics if `sample_index` is greater than or equal to 2^16.
+///   In release, it returns unspecified floats in the interval [0, 1).
 #[inline]
 pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
+    debug_assert!(sample_index < (1 << 16));
     assert!(dimension < NUM_DIMENSIONS);
 
     // The direction vectors are organized for SIMD, so we
@@ -191,19 +203,23 @@ pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
 
 /// Compute four dimensions of a single sample in the Sobol sequence.
 ///
-/// This is identical to `sample()`, but computes four dimensions at a time,
-/// utilizing SIMD on x86-64 architectures.  Even without SIMD this can be
-/// *slightly* faster, as there are some computations that get amortized over
-/// the four dimensions.
+/// This is identical to [`sample()`], but computes four dimensions at once.
+/// On x86-64 architectures it utilizes SIMD for a roughly 4x speed-up.
+/// On other architectures it still computes correct results, but doesn't
+/// utilize SIMD.
 ///
 /// `dimension_set` specifies which four dimensions to compute. `0` yields the
 /// first four dimensions, `1` the second four dimensions, and so on.
 ///
 /// # Panics
 ///
-/// Panics if `dimension_set` is greater than or equal to `NUM_DIMENSION_SETS_4D`.
+/// * Panics if `dimension_set` is greater than or equal to
+///   [`NUM_DIMENSION_SETS_4D`].
+/// * In debug, panics if `sample_index` is greater than or equal to 2^16.
+///   In release, it returns unspecified floats in the interval [0, 1).
 #[inline]
 pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
+    debug_assert!(sample_index < (1 << 16));
     assert!(dimension_set < NUM_DIMENSION_SETS_4D);
 
     // Shuffle the index using the given seed to produce a unique statistically

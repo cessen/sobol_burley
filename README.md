@@ -3,24 +3,26 @@
 [![Latest Release][crates-io-badge]][crates-io-url]
 [![Documentation][docs-rs-img]][docs-rs-url]
 
-A seedable Owen-scrambled Sobol sequence based on the paper [Practical Hash-based Owen Scrambling](http://www.jcgt.org/published/0009/04/01/) by Brent Burley, with an improved hash from [Building a Better LK Hash](https://psychopath.io/post/2021_01_30_building_a_better_lk_hash), and a larger set of direction vectors due to [Kuo et al](http://web.maths.unsw.edu.au/~fkuo/sobol/).
+A seedable Owen-scrambled Sobol sequence based on the paper [Practical Hash-based Owen Scrambling](http://www.jcgt.org/published/0009/04/01/) by Brent Burley, but with an improved hash from [Building a Better LK Hash](https://psychopath.io/post/2021_01_30_building_a_better_lk_hash) and more dimensions due to [Kuo et al](http://web.maths.unsw.edu.au/~fkuo/sobol/).
 
-This crate is geared towards use in practical graphics applications, and as such has some limitations:
+This crate is geared towards practical graphics applications, and as such has some limitations:
 
 * The maximum sequence length is 2^16.
-* The maximum number of supported dimensions is 256 (but you can get around this easily--see the crate documentation for how).
-* It produces 32-bit floats rather than higher-precision 64-bit floats.
+* The maximum number of dimensions is 256 (although this can be worked around with seeding).
+* The output is 32-bit floats, not 64-bit.
 
-These are all trade-offs made for better performance and smaller code size.
+These are all trade-offs for the sake of better performance and a smaller memory footprint.
 
 Expanding this crate to be suitable for more general applications is a goal for the future.  However, efficient execution for graphics applications will always be the top priority.
 
 
 ## Basic usage
 
-Basic usage is pretty straightforward.  The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and the output is in the interval [0, 1).
+Basic usage is pretty straightforward:
 
 ```rust
+use sobol_burley::sample;
+
 // Print the first sixteen dimensions of sample 1.
 for d in 0..16 {
     let n = sample(0, d, 0);
@@ -34,9 +36,9 @@ for d in 0..16 {
 }
 ```
 
-If all you want is a single standard Owen-scrambled Sobol sequence, then this is all you need.
+The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and the output is in the interval [0, 1).
 
-For more advanced usage--including how to use the third parameter, how to get around the 256-dimension limit, and how to calculate multiple dimensions at once with SIMD--see the crate documentation.
+If all you want is a single standard Owen-scrambled Sobol sequence, then this is all you need.  For more advanced usage, see the crate documentation.
 
 
 ## License

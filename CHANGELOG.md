@@ -6,6 +6,8 @@
 - Add support for computing just one dimension at a time.  This makes usage
   easier when performance isn't critical, and makes the documention a bit
   easier to follow.
+- Documentation improvements.
+- Panic in debug when the max sample count is exceeded.
 
 ## [0.2.0] - 2021-05-11
 

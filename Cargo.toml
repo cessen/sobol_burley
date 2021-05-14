@@ -1,7 +1,7 @@
 [package]
 name = "sobol_burley"
 version = "0.2.0"
-description = "Sobol sequence with seedable Owen scrambling and shuffling"
+description = "A seedable Owen-scrambled Sobol sequence."
 categories = ["algorithms", "mathematics", "no-std"]
 keywords = ["sobol", "low-discrepancy", "monte-carlo", "quasirandom", "sampling"]
 documentation = "https://docs.rs/sobol_burley"
