@@ -1,7 +1,6 @@
 //--------------------------------------------------------------------------
 // x86/64 SSE
-#[cfg(target_arch = "x86_64")]
-// #[cfg(all(target_arch = "x86_64", target_feature = "sse4.1"))]
+#[cfg(all(target_arch = "x86_64", feature = "simd"))]
 pub(crate) mod sse {
     use core::arch::x86_64::{
         __m128i, _mm_add_epi32, _mm_and_si128, _mm_or_si128, _mm_set1_epi32, _mm_set1_ps,
@@ -277,13 +276,12 @@ pub(crate) mod sse {
         }
     }
 }
-#[cfg(target_arch = "x86_64")]
+#[cfg(all(target_arch = "x86_64", feature = "simd"))]
 pub(crate) use sse::Int4;
 
 //--------------------------------------------------------------------------
 // Fallback
-#[cfg(not(target_arch = "x86_64"))]
-// #[cfg(not(all(target_arch = "x86_64", target_feature = "sse4.1")))]
+#[cfg(not(all(target_arch = "x86_64", feature = "simd")))]
 pub(crate) mod fallback {
     #[derive(Debug, Copy, Clone)]
     #[repr(align(16))]
@@ -298,7 +296,6 @@ pub(crate) mod fallback {
 
         /// Converts the full range of a 32 bit integer to a float in [0, 1).
         pub fn to_norm_floats(self) -> [f32; 4] {
-            const ONE_OVER_32BITS: f32 = 1.0 / (1u64 << 32) as f32;
             [
                 f32::from_bits((self.v[0] >> 9) | 0x3f800000) - 1.0,
                 f32::from_bits((self.v[1] >> 9) | 0x3f800000) - 1.0,
@@ -451,5 +448,5 @@ pub(crate) mod fallback {
         }
     }
 }
-#[cfg(not(target_arch = "x86_64"))]
+#[cfg(not(all(target_arch = "x86_64", feature = "simd")))]
 pub(crate) use fallback::Int4;

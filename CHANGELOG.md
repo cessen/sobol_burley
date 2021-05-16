@@ -3,15 +3,17 @@
 
 ## [Unreleased]
 
+- Add a `simd` feature flag, to allow people to disable simd (and thus unsafe code).
+
 
 ## [0.3.0] - 2021-05-14
 
 - Add support for computing just one dimension at a time.  This makes usage
   easier when performance isn't critical, and makes the documention a bit
   easier to follow.
-- Documentation improvements.
 - Panic in debug when the max sample count is exceeded.
 - Reduce memory footprint, by storing only the half of the direction vector data that we actually use.
+- Documentation improvements.
 
 
 ## [0.2.0] - 2021-05-11
