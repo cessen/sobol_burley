@@ -32,7 +32,7 @@ for i in 0..1024 {
 }
 ```
 
-The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and the output is in the interval [0, 1).
+The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and outputs are in the interval [0, 1).
 
 If all you want is a single Owen-scrambled Sobol sequence, then this is all you need.  For more advanced usage, see the crate documentation.
 
