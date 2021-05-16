@@ -11,6 +11,7 @@ authors = ["Nathan Vegdahl <cessen@cessen.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 build = "build.rs"
+exclude = ["/images"]
 
 [lib]
 name = "sobol_burley"

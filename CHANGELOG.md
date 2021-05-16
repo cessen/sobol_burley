@@ -4,6 +4,7 @@
 ## [Unreleased]
 
 - Add a `simd` feature flag, to allow people to disable simd (and thus unsafe code).
+- Documentation improvements.
 
 
 ## [0.3.0] - 2021-05-14

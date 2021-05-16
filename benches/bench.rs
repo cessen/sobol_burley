@@ -4,7 +4,7 @@ use sobol_burley::{sample, sample_4d};
 
 //----
 
-fn gen_1000_samples_simd(bench: &mut Bencher) {
+fn gen_1000_samples_4d(bench: &mut Bencher) {
     bench.iter(|| {
         for i in 0..250u32 {
             black_box(sample_4d(i, 0, 1234567890));
@@ -12,7 +12,7 @@ fn gen_1000_samples_simd(bench: &mut Bencher) {
     });
 }
 
-fn gen_1000_samples_simd_incoherent(bench: &mut Bencher) {
+fn gen_1000_samples_incoherent_4d(bench: &mut Bencher) {
     let mut rng = rand::thread_rng();
     bench.iter(|| {
         let s = rng.gen::<u32>();
@@ -58,7 +58,7 @@ benchmark_group!(
     benches,
     gen_1000_samples,
     gen_1000_samples_incoherent,
-    gen_1000_samples_simd,
-    gen_1000_samples_simd_incoherent,
+    gen_1000_samples_4d,
+    gen_1000_samples_incoherent_4d,
 );
 benchmark_main!(benches);

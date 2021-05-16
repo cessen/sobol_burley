@@ -23,22 +23,42 @@ Basic usage is pretty straightforward:
 ```rust
 use sobol_burley::sample;
 
-// Print the first 16 dimensions of the first sample.
-for d in 0..16 {
-    let n = sample(0, d, 0);
-    println!("{}", n);
-}
-
-// Print the first 16 dimensions of the second sample.
-for d in 0..16 {
-    let n = sample(1, d, 0);
-    println!("{}", n);
+// Print 1024 3-dimensional points.
+for i in 0..1024 {
+    let x = sample(i, 0, 0);
+    let y = sample(i, 1, 0);
+    let z = sample(i, 2, 0);
+    println!("({}, {}, {})", x, y, z);
 }
 ```
 
 The first parameter of `sample()` is the index of the sample you want, and the second parameter is the index of the dimension you want.  The parameters are zero-indexed, and the output is in the interval [0, 1).
 
-If all you want is a single standard Owen-scrambled Sobol sequence, then this is all you need.  For more advanced usage, see the crate documentation.
+If all you want is a single Owen-scrambled Sobol sequence, then this is all you need.  For more advanced usage, see the crate documentation.
+
+
+## Why Owen-scrambled Sobol?
+
+There are other resources that explain this properly and in-depth, including Brent Burley's paper linked above.  But here's the short version just to give some intuition:
+
+If you use random points, you get this:
+
+![1024 random points](https://raw.githubusercontent.com/cessen/sobol_burley/master/images/random.png)
+
+If you use plain Sobol, you get this:
+
+![1024 random points](https://raw.githubusercontent.com/cessen/sobol_burley/master/images/sobol.png)
+
+But if you use Owen-scrambled Sobol, you get this:
+
+![1024 random points](https://raw.githubusercontent.com/cessen/sobol_burley/master/images/sobol_owen.png)
+
+Random points have an uneven distribution, and plain Sobol exhibits a strong structure that can result in bias and artifacts.  But Owen-scrambled Sobol in some sense gets the best of both worlds: the even distribution of Sobol, but randomized to minimize structure.
+
+
+## Unsafe code
+
+This crate uses unsafe code for SIMD acceleration.  For 100% safe code, you can disable SIMD support via the `simd` feature flag (enabled by default).
 
 
 ## License

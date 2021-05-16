@@ -26,16 +26,12 @@
 //! ```rust
 //! use sobol_burley::sample;
 //!
-//! // Print the first 16 dimensions of the first sample.
-//! for dimension in 0..16 {
-//!     let n = sample(0, dimension, 0);
-//!     println!("{}", n);
-//! }
-//!
-//! // Print the first 16 dimensions of the second sample.
-//! for dimension in 0..16 {
-//!     let n = sample(1, dimension, 0);
-//!     println!("{}", n);
+//! // Print 1024 3-dimensional points.
+//! for i in 0..1024 {
+//!     let x = sample(i, 0, 0);
+//!     let y = sample(i, 1, 0);
+//!     let z = sample(i, 2, 0);
+//!     println!("({}, {}, {})", x, y, z);
 //! }
 //! ```
 //!
@@ -43,8 +39,8 @@
 //! and the second parameter is the index of the dimension you want.  The
 //! parameters are zero-indexed, and the output is in the interval [0, 1).
 //!
-//! If all you want is a single standard Owen-scrambled Sobol sequence,
-//! then this is all you need.  You can ignore the third parameter.
+//! If all you want is a single Owen-scrambled Sobol sequence, then this is
+//! all you need.  You can ignore the third parameter.
 //!
 //!
 //! ## Seeding
