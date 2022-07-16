@@ -8,14 +8,17 @@ pub(crate) mod sse {
         _mm_srli_epi32, _mm_sub_ps, _mm_xor_si128,
     };
 
+    /// A packed set of four `u32`s.
+    ///
+    /// Uses SIMD for computation on supported platforms.
     #[derive(Debug, Copy, Clone)]
-    pub(crate) struct Int4 {
+    pub struct Int4 {
         v: __m128i,
     }
 
     impl Int4 {
         #[inline(always)]
-        pub fn zero() -> Int4 {
+        pub(crate) fn zero() -> Int4 {
             Int4 {
                 v: unsafe { _mm_setzero_si128() },
             }
@@ -28,9 +31,13 @@ pub(crate) mod sse {
             n[i]
         }
 
-        /// Converts the full range of a 32 bit integer to a float in [0, 1).
+        /// Convert each integer to a float in [0.0, 1.0).
+        ///
+        /// Same behavior as
+        /// [`parts::u32_to_f32_norm()`](`crate::parts::u32_to_f32_norm()`),
+        /// applied to each integer individually.
         #[inline(always)]
-        pub fn to_norm_floats(self) -> [f32; 4] {
+        pub fn to_f32_norm(self) -> [f32; 4] {
             let n4 = unsafe {
                 let a = _mm_srli_epi32(self.v, 9);
                 let b = _mm_or_si128(a, _mm_set1_epi32(core::mem::transmute(0x3f800000u32)));
@@ -40,6 +47,10 @@ pub(crate) mod sse {
             unsafe { core::mem::transmute(n4) }
         }
 
+        /// Reverse the order of the bits in each integer.
+        ///
+        /// Same behavior as `reverse_bits()` in the Rust standard
+        /// library, applied to each integer individually.
         #[inline]
         pub fn reverse_bits(self) -> Int4 {
             let mut n = self.v;
@@ -245,14 +256,14 @@ pub(crate) mod sse {
         }
 
         #[test]
-        fn to_norm_floats() {
+        fn to_f32_norm() {
             let a = Int4::from([0x00000000; 4]);
             let b = Int4::from([0x80000000; 4]);
             let c = Int4::from([0xffffffff; 4]);
 
-            let a2 = a.to_norm_floats();
-            let b2 = b.to_norm_floats();
-            let c2 = c.to_norm_floats();
+            let a2 = a.to_f32_norm();
+            let b2 = b.to_f32_norm();
+            let c2 = c.to_f32_norm();
 
             assert_eq!(a2, [0.0, 0.0, 0.0, 0.0]);
             assert_eq!(b2, [0.5, 0.5, 0.5, 0.5]);
@@ -277,25 +288,32 @@ pub(crate) mod sse {
     }
 }
 #[cfg(all(target_arch = "x86_64", feature = "simd"))]
-pub(crate) use sse::Int4;
+pub use sse::Int4;
 
 //--------------------------------------------------------------------------
 // Fallback
 #[cfg(not(all(target_arch = "x86_64", feature = "simd")))]
 pub(crate) mod fallback {
+    /// A packed set of four `u32`s.
+    ///
+    /// Uses SIMD for computation on supported platforms.
     #[derive(Debug, Copy, Clone)]
     #[repr(align(16))]
-    pub(crate) struct Int4 {
+    pub struct Int4 {
         v: [u32; 4],
     }
 
     impl Int4 {
-        pub fn zero() -> Int4 {
+        pub(crate) fn zero() -> Int4 {
             Int4 { v: [0, 0, 0, 0] }
         }
 
-        /// Converts the full range of a 32 bit integer to a float in [0, 1).
-        pub fn to_norm_floats(self) -> [f32; 4] {
+        /// Convert each integer to a float in [0.0, 1.0).
+        ///
+        /// Same behavior as
+        /// [`parts::u32_to_f32_norm()`](`crate::parts::u32_to_f32_norm()`),
+        /// applied to each integer individually.
+        pub fn to_f32_norm(self) -> [f32; 4] {
             [
                 f32::from_bits((self.v[0] >> 9) | 0x3f800000) - 1.0,
                 f32::from_bits((self.v[1] >> 9) | 0x3f800000) - 1.0,
@@ -304,6 +322,10 @@ pub(crate) mod fallback {
             ]
         }
 
+        /// Reverse the order of the bits in each integer.
+        ///
+        /// Same behavior as `reverse_bits()` in the Rust standard
+        /// library, applied to each integer individually.
         pub fn reverse_bits(self) -> Int4 {
             Int4 {
                 v: [
@@ -449,4 +471,4 @@ pub(crate) mod fallback {
     }
 }
 #[cfg(not(all(target_arch = "x86_64", feature = "simd")))]
-pub(crate) use fallback::Int4;
+pub use fallback::Int4;
