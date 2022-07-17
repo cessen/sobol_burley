@@ -4,6 +4,11 @@
 ## [Unreleased]
 
 
+## [0.4.0] - 2022-07-16
+
+- Expose sampler internals so people can build their own custom samplers if needed for specific situations.
+
+
 ## [0.3.1] - 2021-05-16
 
 - Add a `simd` feature flag, to allow people to disable simd (and thus unsafe code).
@@ -33,7 +38,8 @@
 - First release.
 
 
-[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/cessen/sobol_burley/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/cessen/sobol_burley/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/cessen/sobol_burley/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cessen/sobol_burley/compare/v0.1.0...v0.2.0

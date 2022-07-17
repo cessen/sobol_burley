@@ -115,13 +115,15 @@ pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_DEP
 
         // Generate the direction numbers for this dimension.
         for i in 0..s.min(SOBOL_DEPTH) {
-            v[i] = (m[i] << (SOBOL_BITS - 1 - i)) as SobolInt;
+            v[i] = (m[i] << (SOBOL_BITS - (i + 1))) as SobolInt;
         }
-        for i in s.min(SOBOL_DEPTH)..SOBOL_DEPTH {
-            v[i] = v[i - s as usize] ^ (v[i - s as usize] >> s);
+        if s < SOBOL_DEPTH {
+            for i in s..SOBOL_DEPTH {
+                v[i] = v[i - s as usize] ^ (v[i - s as usize] >> s);
 
-            for k in 1..s {
-                v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k as usize];
+                for k in 1..s {
+                    v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k as usize];
+                }
             }
         }
 
