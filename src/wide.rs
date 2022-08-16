@@ -224,6 +224,13 @@ pub(crate) mod sse {
         }
     }
 
+    impl From<Int4> for [u32; 4] {
+        #[inline(always)]
+        fn from(i: Int4) -> [u32; 4] {
+            unsafe { core::mem::transmute(i.v) }
+        }
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -467,6 +474,13 @@ pub(crate) mod fallback {
     impl From<[u32; 4]> for Int4 {
         fn from(v: [u32; 4]) -> Self {
             Int4 { v }
+        }
+    }
+
+    impl From<Int4> for [u32; 4] {
+        #[inline(always)]
+        fn from(i: Int4) -> [u32; 4] {
+            i.v
         }
     }
 }
