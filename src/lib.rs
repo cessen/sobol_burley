@@ -195,7 +195,7 @@ pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
     let shuffled_rev_index =
         owen_scramble_rev(sample_index.reverse_bits(), hash_u32(seed ^ 0x79c68e4a));
 
-    let sobol = sobol_4d_rev(shuffled_rev_index, dimension_set);
+    let sobol = sobol_int4_rev(shuffled_rev_index, dimension_set);
 
     // Compute the scramble values for doing Owen scrambling.
     // The multiply on `seed` is to avoid accidental cancellation

@@ -82,7 +82,7 @@ pub fn sobol_rev(sample_index_rev: u32, dimension: u32) -> u32 {
 /// * `1` -> `[dim4, dim5, dim6, dim7]`
 /// * etc.
 #[inline]
-pub fn sobol_4d_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
+pub fn sobol_int4_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
     assert!(dimension_set < NUM_DIMENSION_SETS_4D);
 
     // Compute the Sobol sample with reversed bits.
