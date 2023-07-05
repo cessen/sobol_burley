@@ -10,6 +10,8 @@ pub(crate) mod sse {
 
     /// A packed set of four `u32`s.
     ///
+    /// Addition, subtraction, and multiplication are all wrapping.
+    ///
     /// Uses SIMD for computation on supported platforms.
     #[derive(Debug, Copy, Clone)]
     pub struct Int4 {
