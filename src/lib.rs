@@ -150,7 +150,7 @@ pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
     // Shuffle the index using the given seed to produce a unique statistically
     // independent Sobol sequence.
     let shuffled_rev_index =
-        owen_scramble_rev(sample_index.reverse_bits(), hash_u32(seed ^ 0x79c68e4a));
+        owen_scramble_rev(sample_index.reverse_bits(), hash(seed ^ 0x79c68e4a));
 
     let sobol = sobol_rev(shuffled_rev_index, dimension);
 
@@ -164,7 +164,7 @@ pub fn sample(sample_index: u32, dimension: u32, seed: u32) -> f32 {
         ds ^ seed ^ [0x912f69ba, 0x174f18ab, 0x691e72ca, 0xb40cc1b8][dimension as usize & 0b11]
     };
 
-    let sobol_owen_rev = owen_scramble_rev(sobol, hash_u32(scramble));
+    let sobol_owen_rev = owen_scramble_rev(sobol, hash(scramble));
 
     u32_to_f32_norm(sobol_owen_rev.reverse_bits())
 }
@@ -193,7 +193,7 @@ pub fn sample_4d(sample_index: u32, dimension_set: u32, seed: u32) -> [f32; 4] {
     // Shuffle the index using the given seed to produce a unique statistically
     // independent Sobol sequence.
     let shuffled_rev_index =
-        owen_scramble_rev(sample_index.reverse_bits(), hash_u32(seed ^ 0x79c68e4a));
+        owen_scramble_rev(sample_index.reverse_bits(), hash(seed ^ 0x79c68e4a));
 
     let sobol = sobol_int4_rev(shuffled_rev_index, dimension_set);
 

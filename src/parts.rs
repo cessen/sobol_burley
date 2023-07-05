@@ -28,13 +28,13 @@
 //! A basic Owen-scrambled Sobol sequence function:
 //!
 //! ```rust
-//! # use sobol_burley::parts::{sobol_rev, u32_to_f32_norm, owen_scramble_rev, hash_u32};
+//! # use sobol_burley::parts::{sobol_rev, u32_to_f32_norm, owen_scramble_rev, hash};
 //! fn sobol_owen(i: u32, dimension: u32) -> f32 {
 //!     let sobol_int_rev = sobol_rev(i.reverse_bits(), dimension);
 //!
 //!     let sobol_owen_int = owen_scramble_rev(
 //!         sobol_int_rev,
-//!         hash_u32(dimension),
+//!         hash(dimension),
 //!     ).reverse_bits();
 //!
 //!     u32_to_f32_norm(sobol_owen_int)
@@ -150,7 +150,7 @@ pub fn owen_scramble_int4_rev(mut n_rev: Int4, scramble: Int4) -> Int4 {
 ///
 /// From <https://github.com/skeeto/hash-prospector>
 #[inline(always)]
-pub fn hash_u32(mut n: u32) -> u32 {
+pub fn hash(mut n: u32) -> u32 {
     n ^= 0xe6fe3beb; // So zero doesn't map to zero.
 
     n ^= n >> 16;
