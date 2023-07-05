@@ -4,6 +4,12 @@
 ## [Unreleased]
 
 
+## [0.5.0] - 2023-07-05
+
+- Fleshed out the `Int4` impls with subtraction and conversion to `[u32; 4]`.
+- Cleaned up the function names in the `parts` module to be more consistent.
+
+
 ## [0.4.0] - 2022-07-16
 
 - Expose sampler internals so people can build their own custom samplers if needed for specific situations.
@@ -38,7 +44,8 @@
 - First release.
 
 
-[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/cessen/sobol_burley/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/cessen/sobol_burley/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/cessen/sobol_burley/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/cessen/sobol_burley/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/cessen/sobol_burley/compare/v0.2.0...v0.3.0
