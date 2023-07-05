@@ -107,7 +107,7 @@ pub fn sobol_int4_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
 /// Scramble `n` using a hash function that closely approximates a
 /// reverse-bit Owen scramble.
 ///
-/// Passing a different random `scramble` parameter results in a differen
+/// Passing a different random `scramble` parameter results in a different
 /// random Owen scramble.
 ///
 /// Uses the hash function from
