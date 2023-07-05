@@ -5,7 +5,7 @@ pub(crate) mod sse {
     use core::arch::x86_64::{
         __m128i, _mm_add_epi32, _mm_and_si128, _mm_or_si128, _mm_set1_epi32, _mm_set1_ps,
         _mm_set_epi32, _mm_setzero_si128, _mm_sll_epi32, _mm_slli_epi32, _mm_srl_epi32,
-        _mm_srli_epi32, _mm_sub_ps, _mm_xor_si128,
+        _mm_srli_epi32, _mm_sub_epi32, _mm_sub_ps, _mm_xor_si128,
     };
 
     /// A packed set of four `u32`s.
@@ -90,8 +90,7 @@ pub(crate) mod sse {
     }
 
     impl core::ops::Mul for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn mul(self, other: Self) -> Int4 {
             // This only works with SSE 4.1 support.
@@ -132,18 +131,42 @@ pub(crate) mod sse {
         }
     }
 
+    impl core::ops::Add for Int4 {
+        type Output = Self;
+        #[inline(always)]
+        fn add(self, other: Self) -> Self {
+            Int4 {
+                v: unsafe { _mm_add_epi32(self.v, other.v) },
+            }
+        }
+    }
+
     impl core::ops::AddAssign for Int4 {
         #[inline(always)]
         fn add_assign(&mut self, other: Self) {
-            *self = Int4 {
-                v: unsafe { _mm_add_epi32(self.v, other.v) },
-            };
+            *self = *self + other;
+        }
+    }
+
+    impl core::ops::Sub for Int4 {
+        type Output = Self;
+        #[inline(always)]
+        fn sub(self, other: Self) -> Self {
+            Int4 {
+                v: unsafe { _mm_sub_epi32(self.v, other.v) },
+            }
+        }
+    }
+
+    impl core::ops::SubAssign for Int4 {
+        #[inline(always)]
+        fn sub_assign(&mut self, other: Self) {
+            *self = *self - other;
         }
     }
 
     impl core::ops::BitAnd for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn bitand(self, other: Self) -> Int4 {
             Int4 {
@@ -153,14 +176,14 @@ pub(crate) mod sse {
     }
 
     impl core::ops::BitAndAssign for Int4 {
+        #[inline(always)]
         fn bitand_assign(&mut self, other: Self) {
             *self = *self & other;
         }
     }
 
     impl core::ops::BitOr for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn bitor(self, other: Self) -> Int4 {
             Int4 {
@@ -170,14 +193,14 @@ pub(crate) mod sse {
     }
 
     impl core::ops::BitOrAssign for Int4 {
+        #[inline(always)]
         fn bitor_assign(&mut self, other: Self) {
             *self = *self | other;
         }
     }
 
     impl core::ops::BitXor for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn bitxor(self, other: Self) -> Int4 {
             Int4 {
@@ -194,8 +217,7 @@ pub(crate) mod sse {
     }
 
     impl core::ops::Shl<i32> for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn shl(self, other: i32) -> Int4 {
             Int4 {
@@ -205,8 +227,7 @@ pub(crate) mod sse {
     }
 
     impl core::ops::Shr<i32> for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn shr(self, other: i32) -> Int4 {
             Int4 {
@@ -311,6 +332,7 @@ pub(crate) mod fallback {
     }
 
     impl Int4 {
+        #[inline(always)]
         pub(crate) fn zero() -> Int4 {
             Int4 { v: [0, 0, 0, 0] }
         }
@@ -320,6 +342,7 @@ pub(crate) mod fallback {
         /// Same behavior as
         /// [`parts::u32_to_f32_norm()`](`crate::parts::u32_to_f32_norm()`),
         /// applied to each integer individually.
+        #[inline(always)]
         pub fn to_f32_norm(self) -> [f32; 4] {
             [
                 f32::from_bits((self.v[0] >> 9) | 0x3f800000) - 1.0,
@@ -333,6 +356,7 @@ pub(crate) mod fallback {
         ///
         /// Same behavior as `reverse_bits()` in the Rust standard
         /// library, applied to each integer individually.
+        #[inline(always)]
         pub fn reverse_bits(self) -> Int4 {
             Int4 {
                 v: [
@@ -346,8 +370,8 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::Mul for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
+        #[inline(always)]
         fn mul(self, other: Self) -> Int4 {
             Int4 {
                 v: [
@@ -361,26 +385,59 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::MulAssign for Int4 {
+        #[inline(always)]
         fn mul_assign(&mut self, other: Self) {
             *self = *self * other;
         }
     }
 
-    impl core::ops::AddAssign for Int4 {
-        fn add_assign(&mut self, other: Self) {
-            *self = Int4 {
+    impl core::ops::Add for Int4 {
+        type Output = Self;
+        #[inline(always)]
+        fn add(self, other: Self) -> Self {
+            Int4 {
                 v: [
                     self.v[0].wrapping_add(other.v[0]),
                     self.v[1].wrapping_add(other.v[1]),
                     self.v[2].wrapping_add(other.v[2]),
                     self.v[3].wrapping_add(other.v[3]),
                 ],
-            };
+            }
+        }
+    }
+
+    impl core::ops::AddAssign for Int4 {
+        #[inline(always)]
+        fn add_assign(&mut self, other: Self) {
+            *self = *self + other;
+        }
+    }
+
+    impl core::ops::Sub for Int4 {
+        type Output = Self;
+        #[inline(always)]
+        fn sub(self, other: Self) -> Self {
+            Int4 {
+                v: [
+                    self.v[0].wrapping_sub(other.v[0]),
+                    self.v[1].wrapping_sub(other.v[1]),
+                    self.v[2].wrapping_sub(other.v[2]),
+                    self.v[3].wrapping_sub(other.v[3]),
+                ],
+            }
+        }
+    }
+
+    impl core::ops::SubAssign for Int4 {
+        #[inline(always)]
+        fn sub_assign(&mut self, other: Self) {
+            *self = *self - other;
         }
     }
 
     impl core::ops::BitAnd for Int4 {
-        type Output = Int4;
+        type Output = Self;
+        #[inline(always)]
         fn bitand(self, other: Self) -> Int4 {
             Int4 {
                 v: [
@@ -394,13 +451,15 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::BitAndAssign for Int4 {
+        #[inline(always)]
         fn bitand_assign(&mut self, other: Self) {
             *self = *self & other;
         }
     }
 
     impl core::ops::BitOr for Int4 {
-        type Output = Int4;
+        type Output = Self;
+        #[inline(always)]
         fn bitor(self, other: Self) -> Int4 {
             Int4 {
                 v: [
@@ -414,13 +473,15 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::BitOrAssign for Int4 {
+        #[inline(always)]
         fn bitor_assign(&mut self, other: Self) {
             *self = *self | other;
         }
     }
 
     impl core::ops::BitXor for Int4 {
-        type Output = Int4;
+        type Output = Self;
+        #[inline(always)]
         fn bitxor(self, other: Self) -> Int4 {
             Int4 {
                 v: [
@@ -434,14 +495,14 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::BitXorAssign for Int4 {
+        #[inline(always)]
         fn bitxor_assign(&mut self, other: Self) {
             *self = *self ^ other;
         }
     }
 
     impl core::ops::Shl<i32> for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn shl(self, other: i32) -> Int4 {
             Int4 {
@@ -456,8 +517,7 @@ pub(crate) mod fallback {
     }
 
     impl core::ops::Shr<i32> for Int4 {
-        type Output = Int4;
-
+        type Output = Self;
         #[inline(always)]
         fn shr(self, other: i32) -> Int4 {
             Int4 {
@@ -472,6 +532,7 @@ pub(crate) mod fallback {
     }
 
     impl From<[u32; 4]> for Int4 {
+        #[inline(always)]
         fn from(v: [u32; 4]) -> Self {
             Int4 { v }
         }
