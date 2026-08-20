@@ -20,6 +20,13 @@ pub(crate) mod sse {
 
     impl Int4 {
         #[inline(always)]
+        pub(crate) fn splat(n: u32) -> Int4 {
+            Int4 {
+                v: unsafe { _mm_set1_epi32(n as i32) },
+            }
+        }
+
+        #[inline(always)]
         pub(crate) fn zero() -> Int4 {
             Int4 {
                 v: unsafe { _mm_setzero_si128() },
@@ -334,6 +341,11 @@ pub(crate) mod fallback {
     }
 
     impl Int4 {
+        #[inline(always)]
+        pub(crate) fn splat(n: u32) -> Int4 {
+            Int4 { v: [n, n, n, n] }
+        }
+
         #[inline(always)]
         pub(crate) fn zero() -> Int4 {
             Int4 { v: [0, 0, 0, 0] }

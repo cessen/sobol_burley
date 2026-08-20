@@ -58,17 +58,9 @@ pub fn sobol_rev(sample_index_rev: u32, dimension: u32) -> u32 {
     // Compute the Sobol sample with reversed bits.
     let vecs = &REV_VECTORS[dimension_set];
     let mut sobol = 0u32;
-    let mut index = sample_index_rev & 0xffff0000; // Only use the top 16 bits.
-    let mut i = 0;
-    while index != 0 {
-        let j = index.leading_zeros();
-        // Note: using `get_unchecked()` here instead gives about a 3%
-        // performance boost.  I'm opting to leave that on the table for now,
-        // for the sake of keeping the main code entirely safe.
-        sobol ^= vecs[(i + j) as usize][sub_dimension];
-        i += j + 1;
-        index <<= j;
-        index <<= 1;
+    for i in 0..16 {
+        let mask = 0u32.wrapping_sub((sample_index_rev >> (31 - i)) & 1);
+        sobol ^= mask & vecs[i][sub_dimension];
     }
 
     sobol
@@ -88,17 +80,13 @@ pub fn sobol_int4_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
     // Compute the Sobol sample with reversed bits.
     let vecs = &REV_VECTORS[dimension_set as usize];
     let mut sobol = Int4::zero();
-    let mut index = sample_index_rev & 0xffff0000; // Only use the top 16 bits.
-    let mut i = 0;
-    while index != 0 {
-        let j = index.leading_zeros();
-        // Note: using `get_unchecked()` here instead gives about a 3%
-        // performance boost.  I'm opting to leave that on the table for now,
-        // for the sake of keeping the main code entirely safe.
-        sobol ^= vecs[(i + j) as usize].into();
-        i += j + 1;
-        index <<= j;
-        index <<= 1;
+
+    let index_rev = Int4::splat(sample_index_rev);
+    let zero = Int4::zero();
+    let one = Int4::splat(1);
+    for i in 0..16 {
+        let mask = zero - ((index_rev >> (31 - i as i32)) & one);
+        sobol ^= mask & vecs[i].into();
     }
 
     sobol
@@ -192,5 +180,29 @@ mod tests {
     pub fn to_norm_f32() {
         assert_eq!(u32_to_f32_norm(0), 0.0);
         assert!(u32_to_f32_norm(core::u32::MAX) < 1.0);
+    }
+
+    #[test]
+    pub fn sobol_rev_01() {
+        const INPUTS: &[u32] = &[0u32, 1, 2, 3, 20, 123456, 13, 635, 99999999, 54321];
+        let mut values = [0u32; INPUTS.len()];
+        for (i, v) in INPUTS.iter().enumerate() {
+            values[i] = sobol_rev((v + 1000).reverse_bits(), 1).reverse_bits();
+        }
+        assert_eq!(
+            &values[..],
+            &[
+                692060160u32,
+                2839543808,
+                3913285632,
+                1765801984,
+                20971520,
+                3321430016,
+                1900019712,
+                1180696576,
+                1077477376,
+                3576496128
+            ]
+        );
     }
 }
