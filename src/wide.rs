@@ -49,7 +49,7 @@ pub(crate) mod sse {
         pub fn to_f32_norm(self) -> [f32; 4] {
             let n4 = unsafe {
                 let a = _mm_srli_epi32(self.v, 9);
-                let b = _mm_or_si128(a, _mm_set1_epi32(core::mem::transmute(0x3f800000u32)));
+                let b = _mm_or_si128(a, _mm_set1_epi32(0x3f800000u32.cast_signed()));
                 _mm_sub_ps(core::mem::transmute(b), _mm_set1_ps(1.0))
             };
 
@@ -67,25 +67,25 @@ pub(crate) mod sse {
                 // From http://aggregate.org/MAGIC/#Bit%20Reversal but SIMD
                 // on four numbers at once.
 
-                let y0 = _mm_set1_epi32(core::mem::transmute(0x55555555u32));
+                let y0 = _mm_set1_epi32(0x55555555u32.cast_signed());
                 n = _mm_or_si128(
                     _mm_and_si128(_mm_srli_epi32(n, 1), y0),
                     _mm_slli_epi32(_mm_and_si128(n, y0), 1),
                 );
 
-                let y1 = _mm_set1_epi32(core::mem::transmute(0x33333333u32));
+                let y1 = _mm_set1_epi32(0x33333333u32.cast_signed());
                 n = _mm_or_si128(
                     _mm_and_si128(_mm_srli_epi32(n, 2), y1),
                     _mm_slli_epi32(_mm_and_si128(n, y1), 2),
                 );
 
-                let y2 = _mm_set1_epi32(core::mem::transmute(0x0f0f0f0fu32));
+                let y2 = _mm_set1_epi32(0x0f0f0f0fu32.cast_signed());
                 n = _mm_or_si128(
                     _mm_and_si128(_mm_srli_epi32(n, 4), y2),
                     _mm_slli_epi32(_mm_and_si128(n, y2), 4),
                 );
 
-                let y3 = _mm_set1_epi32(core::mem::transmute(0x00ff00ffu32));
+                let y3 = _mm_set1_epi32(0x00ff00ffu32.cast_signed());
                 n = _mm_or_si128(
                     _mm_and_si128(_mm_srli_epi32(n, 8), y3),
                     _mm_slli_epi32(_mm_and_si128(n, y3), 8),
