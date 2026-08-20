@@ -29,9 +29,23 @@ pub(crate) mod sse {
         }
 
         #[inline(always)]
-        pub(crate) fn zero() -> Int4 {
+        pub(crate) const fn zero() -> Int4 {
             Int4 {
-                v: unsafe { _mm_setzero_si128() },
+                v: unsafe { core::mem::transmute([0u32; 4]) },
+            }
+        }
+
+        #[inline(always)]
+        pub(crate) const fn one() -> Int4 {
+            Int4 {
+                v: unsafe { core::mem::transmute([1u32; 4]) },
+            }
+        }
+
+        #[inline(always)]
+        pub(crate) const fn ones() -> Int4 {
+            Int4 {
+                v: unsafe { core::mem::transmute([0xffffffffu32; 4]) },
             }
         }
 
@@ -345,12 +359,24 @@ pub(crate) mod fallback {
     impl Int4 {
         #[inline(always)]
         pub(crate) fn splat(n: u32) -> Int4 {
-            Int4 { v: [n, n, n, n] }
+            Int4 { v: [n; 4] }
         }
 
         #[inline(always)]
-        pub(crate) fn zero() -> Int4 {
-            Int4 { v: [0, 0, 0, 0] }
+        pub(crate) const fn zero() -> Int4 {
+            Int4 { v: [0; 4] }
+        }
+
+        #[inline(always)]
+        pub(crate) const fn one() -> Int4 {
+            Int4 { v: [1u32; 4] }
+        }
+
+        #[inline(always)]
+        pub(crate) const fn ones() -> Int4 {
+            Int4 {
+                v: [0xffffffffu32; 4],
+            }
         }
 
         /// Convert each integer to a float in [0.0, 1.0).

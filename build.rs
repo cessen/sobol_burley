@@ -48,6 +48,7 @@ fn main() {
             .iter()
             .zip(d4[1].iter())
             .zip(d4[2].iter().zip(d4[3].iter()))
+            .rev()
         {
             f.write_all(
                 format!(

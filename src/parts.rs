@@ -58,9 +58,9 @@ pub fn sobol_rev(sample_index_rev: u32, dimension: u32) -> u32 {
     // Compute the Sobol sample with reversed bits.
     let vecs = &REV_VECTORS[dimension_set];
     let mut sobol = 0u32;
-    for i in 0..16 {
-        let mask = 0u32.wrapping_sub((sample_index_rev >> (31 - i)) & 1);
-        sobol ^= mask & vecs[i][sub_dimension];
+    for i in 16..32 {
+        let mask = 0u32.wrapping_sub((sample_index_rev >> i) & 1);
+        sobol ^= mask & vecs[i - (32 - vecs.len())][sub_dimension];
     }
 
     sobol
@@ -82,11 +82,11 @@ pub fn sobol_int4_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
     let mut sobol = Int4::zero();
 
     let index_rev = Int4::splat(sample_index_rev);
-    let zero = Int4::zero();
-    let one = Int4::splat(1);
-    for i in 0..16 {
-        let mask = zero - ((index_rev >> (31 - i as i32)) & one);
-        sobol ^= mask & vecs[i].into();
+    const ZERO: Int4 = Int4::zero();
+    const ONE: Int4 = Int4::one();
+    for i in 16..32 {
+        let mask = ZERO - ((index_rev >> i as i32) & ONE);
+        sobol ^= mask & vecs[i - (32 - vecs.len())].into();
     }
 
     sobol
