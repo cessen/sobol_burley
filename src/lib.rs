@@ -111,6 +111,7 @@
 
 #![no_std]
 #![allow(clippy::unreadable_literal)]
+#![allow(clippy::needless_range_loop)]
 
 pub mod parts;
 mod wide;

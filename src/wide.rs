@@ -1,3 +1,5 @@
+#![allow(clippy::missing_transmute_annotations)]
+
 //--------------------------------------------------------------------------
 // x86/64 SSE
 #[cfg(all(target_arch = "x86_64", feature = "simd"))]

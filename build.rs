@@ -1,6 +1,8 @@
 //! This file generates the Sobol direction vectors used by this crate's
 //! Sobol sequence.
 
+#![allow(clippy::needless_range_loop)]
+
 use std::{env, fs::File, io::Write, path::Path};
 
 /// How many components to generate.
@@ -119,10 +121,10 @@ pub fn generate_direction_vectors(dimensions: usize) -> Vec<[SobolInt; SOBOL_DEP
         }
         if s < SOBOL_DEPTH {
             for i in s..SOBOL_DEPTH {
-                v[i] = v[i - s as usize] ^ (v[i - s as usize] >> s);
+                v[i] = v[i - s] ^ (v[i - s] >> s);
 
                 for k in 1..s {
-                    v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k as usize];
+                    v[i] ^= ((a >> (s - 1 - k)) & 1) as SobolInt * v[i - k];
                 }
             }
         }
