@@ -3,6 +3,8 @@
 
 ## [Unreleased]
 
+- Significant performance improvements in base Sobol generation.
+
 
 ## [0.5.0] - 2023-07-05
 
