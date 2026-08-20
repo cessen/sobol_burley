@@ -128,7 +128,7 @@ pub const NUM_DIMENSION_SETS_4D: u32 = NUM_DIMENSIONS / 4;
 /// Compute one dimension of a single sample in the Sobol sequence.
 ///
 /// `sample_index` specifies which sample in the Sobol sequence to compute.
-/// A maxmimum of 2^16 samples is supported.
+/// A maximum of 2^16 samples is supported.
 ///
 /// `dimension` specifies which dimension to compute.
 ///

@@ -106,7 +106,7 @@ pub fn sobol_int4_rev(sample_index_rev: u32, dimension_set: u32) -> Int4 {
 /// either:
 ///
 /// * Get `scramble` from a random source, or
-/// * First pass `scramble` through a hash function like [`hash_u32()`]
+/// * First pass `scramble` through a hash function like [`hash()`]
 ///   to randomize it before passing it to this function.
 #[inline(always)]
 pub fn owen_scramble_rev(mut n_rev: u32, scramble: u32) -> u32 {
@@ -150,7 +150,7 @@ pub fn hash(mut n: u32) -> u32 {
     n
 }
 
-/// Same as [`hash_u32()`] except on four numbers at once.
+/// Same as [`hash()`] except on four numbers at once.
 #[inline(always)]
 pub fn hash_int4(mut n: Int4) -> Int4 {
     n ^= [0xe6fe3beb; 4].into(); // So zero doesn't map to zero.
